@@ -8,7 +8,7 @@
 		</script>
 		<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'></script>
 		<!--<script type='text/javascript' src='//code.jquery.com/jquery-1.11.2.min.js'></script>-->
-		<script type="text/javascript" src="pieGraph.js"></script>
+		<script type="text/javascript" src="biweightedCircularGraph.js"></script>
 		<script type="text/javascript" src="hostMap.js"></script>
 		<link rel="stylesheet" href="style.css">
 		<meta name="keywords" content="Computational, Interlingual, Connections, Link, Map">
