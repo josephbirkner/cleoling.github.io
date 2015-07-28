@@ -330,6 +330,11 @@ var drawCircularChart = function(canvas, gap_size, border_size, center, radius, 
             gradientStartColor = segBData.color;
             gradientEndColor = segAData.color;
         }
+        
+        // For cases where innerAzimut ~= outerAzimut ~= 180deg we need to clamp
+        if(innerRelativeToOuterAzimutEndsAt > outerAzimut)
+            innerRelativeToOuterAzimutEndsAt = outerAzimut;
+
         edgeGradient.addColorStop(innerRelativeToOuterAzimutStartsAt/outerAzimut, gradientStartColor);
         edgeGradient.addColorStop(innerRelativeToOuterAzimutEndsAt/outerAzimut, gradientEndColor);
         ctx.fillStyle = edgeGradient;

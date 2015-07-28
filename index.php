@@ -97,7 +97,8 @@
 	</head>
 	<body style="width:window.innerWidth;">
 		<div id="header">
-			<h1>Interlingual Connections on the Web</h1>
+			<h1 align='center'>Interlingual Connections on the Web</h1>
+			<h4 align='center'>Who's linking to whome, about what, where, in which language?</h4>
 			<div id="navWrap">
 				<div id="nav">
 					<ul class="site-menu">
@@ -116,24 +117,24 @@
 		</div>
 		<div id='content-separator'></div>
 		<div class="separable-section">
-			<h2 id="horb">Orb</h2>
+			<h2 class='section-headline' id="horb">Orb</h2>
 			<div align="left">
 				<canvas id="c" width="700px" height="700px" />
 			</div>
 		</div>
 		<div class="separable-section">
-			<h2 id="htable">Table</h2>
+			<h2 class='section-headline' id="htable">Raw Data</h2>
 			<div id="responseFrame"></div>
 		</div>
 		<div class="separable-section">
-			<h2 id="hmap">Map</h2>
+			<h2 class='section-headline' id="hmap">Map</h2>
 			<canvas id="map" width="800" height="400">
 			</canvas>
 		</div>
 		<div class="separable-section">
-			<h2 id="hapi">API</h2>
-			<h2 id="hcode">Code</h2>
-			<h2 id="habout">About</h2>
+			<h2 class='section-headline' id="hapi">API</h2>
+			<h2 class='section-headline' id="hcode">Code</h2>
+			<h2 class='section-headline' id="habout">About</h2>
 			<h3>Authors</h3>
 			<a href="http://josephbirkner.com/" target="_blank">Joseph Birkner</a> & <a href="http://tilly-doe.blogspot.de/" target="_blank">Tillmann Dönicke</a><br />
 			Students of B. Sc. Natural Language Processing<br />
@@ -145,7 +146,7 @@
 				<li>tillmann.doenicke@ims.uni-stuttgart.de</li>
 				<li>info@cleoling.com</li>
 			</ul>
-			<h3>Chronicle</h3>
+			<h3>History</h3>
 			<ul>
 				<li>2015
 					<ul>
