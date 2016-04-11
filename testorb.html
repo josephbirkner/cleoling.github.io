@@ -1,0 +1,33 @@
+<html>
+<head>
+	<script type="text/javascript" src="pieGraph.js"></script>
+</head>
+<canvas id='c' width='500px' height='500px'>
+<script type="text/javascript">
+	drawCircularChart(document.getElementById('c'), 5, 10, [200, 200], 150, [
+		{seg_a_id: 'a', seg_b_id: 'b', num_ab: 10, num_ba: 5, num_extra: [ [['GER',61], ['RU', 81]], [['FR', 21], ['US', 121]] ]},
+		{seg_a_id: 'a', seg_b_id: 'c', num_ab: 10, num_ba: 5},
+		{seg_a_id: 'a', seg_b_id: 'd', num_ab: 20, num_ba: 15},
+		{seg_a_id: 'a', seg_b_id: 'e', num_ab: 30, num_ba: 5},
+		{seg_a_id: 'a', seg_b_id: 'f', num_ab: 10, num_ba: 20},
+
+		{seg_a_id: 'b', seg_b_id: 'c', num_ab: 10, num_ba: 5},
+		{seg_a_id: 'b', seg_b_id: 'd', num_ab: 15, num_ba: 5},
+		{seg_a_id: 'b', seg_b_id: 'e', num_ab: 2, num_ba: 2},
+		{seg_a_id: 'b', seg_b_id: 'f', num_ab: 30, num_ba: 5},
+
+		{seg_a_id: 'c', seg_b_id: 'd', num_ab: 15, num_ba: 5},
+		{seg_a_id: 'c', seg_b_id: 'e', num_ab: 10, num_ba: 50},
+		{seg_a_id: 'c', seg_b_id: 'f', num_ab: 10, num_ba: 10},
+		{seg_a_id: 'c', seg_b_id: 'g', num_ab: 40, num_ba: 10},
+
+		{seg_a_id: 'd', seg_b_id: 'e', num_ab: 10, num_ba: 2},
+		{seg_a_id: 'd', seg_b_id: 'g', num_ab: 20, num_ba: 10},
+		
+		{
+			colors: {a: '#FEE', b: '#EFF', c: '#EFE', d: '#EEF', e: '#FFE', f: '#FEF', g: '#AAF'},
+			extra_dimensions: ['Source Host', 'Target Host']
+		},
+	]);
+</script>
+</html>
