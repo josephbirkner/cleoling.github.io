@@ -47,7 +47,7 @@
 		<link rel="stylesheet" type="text/css" href="token-input.css" />
 		<script type="text/javascript">
 			$(document).ready(function () {
-				$("#my-text-input").tokenInput("getLangs.php");
+				$("#my-text-input").tokenInput("http://data.cleoling.com/getLangs.php");
 			});
 		</script>
 		<!-- END Third Party Code -->
@@ -67,13 +67,13 @@
 				canvasResizeTimer = null;
 			}
 			function redrawChartAndTable() {
-				$.get('getChartData.php?ulangs='+ulangs, function(data, status){
+				$.get('http://data.cleoling.com/getChartData.php?ulangs='+ulangs, function(data, status){
 					if(status == "success"){
 						var array = JSON.parse(data);
 						drawCircularChart(document.getElementById('c'), 4, 30, [350, 350], 300, array);
 					}
 				});
-				$.get("getTable.php?ulangs="+ulangs, function(data, status){
+				$.get("http://data.cleoling.com/getTable.php?ulangs="+ulangs, function(data, status){
 					if(status == "success"){
 						document.getElementById("responseFrame").innerHTML = data;
 					}

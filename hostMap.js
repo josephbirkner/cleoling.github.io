@@ -114,7 +114,7 @@ var drawMap = function(canv) {
 		}
 	});
 
-	$.get("getMapData.php?ulangs="+ulangs, function(stringData, status){
+	$.get("http://data.cleoling.com/getMapData.php?ulangs="+ulangs, function(stringData, status){
 		if(status == 'success'){
 
 			var linkSign = -1.0;
