@@ -41,6 +41,7 @@ var DEFAULT_SETTINGS = {
 
 	// Manipulation settings
     idPrefix: "token-input-",
+    crossDomain: false,
 
 	// Formatters
     resultsFormatter: function(item){ return "<li>" + item[this.propertyToSearch]+ "</li>" },
