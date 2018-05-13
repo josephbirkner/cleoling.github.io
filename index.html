@@ -88,7 +88,7 @@
 					if(canvasResizeTimer == null)
 						canvasResizeTimer = setTimeout(resizeAndRedrawMap, 500, false);
 					else
-						canvasResizeTimer.clearTimeout();
+						window.clearTimeout(canvasResizeTimer);
 				});
 				resizeAndRedrawMap();
 				
