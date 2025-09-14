@@ -1,5 +1,8 @@
 body {
   font-family: Georgia;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 #wrap {
    margin: 10px auto;
@@ -45,12 +48,15 @@ body {
 }​*/
 
 .separable-section {
-  float: left;
-  margin: 5px;
+  margin: 5px 10px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .section-headline {
   background-color: #EEE;
+  padding: 10px;
+  margin: 10px 0;
 }
 
 /* =============== FB-Style token input =============== */

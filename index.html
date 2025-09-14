@@ -7,13 +7,36 @@
 			var ulangx = 'German,English,French,Polish,Russian,Dutch,Turkish,Simplified Chinese,Vietnamese';
 		</script>
 		<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'></script>
-		<!--<script type='text/javascript' src='//code.jquery.com/jquery-1.11.2.min.js'></script>-->
+		<script type="text/javascript" src="dataProcessor.js"></script>
 		<script type="text/javascript" src="biweightedCircularGraph.js"></script>
-		<script type="text/javascript" src="hostMap.js"></script>
 		<link rel="stylesheet" href="style.css">
+		<style>
+			/* Responsive layout for orb and table */
+			@media (max-width: 1200px) {
+				#orb-container, #table-container {
+					flex: 1 1 100% !important;
+					max-width: 100% !important;
+				}
+			}
+		</style>
 		<meta name="keywords" content="Computational, Interlingual, Connections, Link, Map">
 		<meta charset="UTF-8">
 		<meta name="author" content="Tillmann Doenicke" >
+		<script type="text/javascript">
+			// Smooth scrolling for navigation links
+			$(document).ready(function() {
+				$('.smoothScroll').click(function(e) {
+					e.preventDefault();
+					var target = $(this).attr('href');
+					if (target && target !== '') {
+						$('html, body').animate({
+							scrollTop: $(target).offset().top
+						}, 800);
+					}
+					return false;
+				});
+			});
+		</script>
 		<script type="text/javascript">
 			$(function() {
 				// Stick the #nav to the top of the window
@@ -27,9 +50,7 @@
 					if (shouldBeFixed && !isFixed) {
 						nav.css({
 							position: 'fixed',
-							top: 0//,
-							//left: nav.offset().left//,
-							//width: nav.width()
+							top: 0
 						});
 						isFixed = true;
 						$('#content-separator').css('height', $('#navWrap').outerHeight()+'px');
@@ -47,120 +68,165 @@
 		<link rel="stylesheet" type="text/css" href="token-input.css" />
 		<script type="text/javascript">
 			$(document).ready(function () {
-				$("#my-text-input").tokenInput("http://data.cleoling.com/getLangs.php");
+				// Initialize data processor
+				window.dataProcessor.init().then(function() {
+					// Setup token input with local data - tokenInput expects a URL or array
+					$("#my-text-input").tokenInput(window.dataProcessor.languages || [], {
+						preventDuplicates: true,
+						onAdd: function(item) {
+							// Update ulangs when languages are added
+							updateSelectedLanguages();
+						},
+						onDelete: function(item) {
+							// Update ulangs when languages are removed
+							updateSelectedLanguages();
+						},
+						hintText: "Type a language name",
+						noResultsText: "No languages found",
+						searchingText: "Searching..."
+					});
+					
+					// Initial chart and table draw
+					redrawChartAndTable();
+				});
 			});
+			
+			function updateSelectedLanguages() {
+				const tokens = $("#my-text-input").tokenInput("get");
+				if (tokens && tokens.length > 0) {
+					ulangs = tokens.map(t => t.id).join(',');
+				} else {
+					// If no languages selected, use default
+					ulangs = 'de,en,fr,pl,ru,nl,tr,zh-cn,vi';
+				}
+				redrawChartAndTable();
+			}
 		</script>
 		<!-- END Third Party Code -->
 		<script type="text/javascript">
 			
-			var canvasResizeTimer = null;
-			function resizeAndRedrawMap() {
-				var canvas = document.getElementById('map'),
-				context = canvas.getContext('2d');
-				canvas.width = window.innerWidth*0.95;
-				canvas.height = canvas.width/2;
-				/**
-				 * Your drawings need to be inside this function otherwise they will be reset when 
-				 * you resize the browser window and the canvas goes will be cleared.
-				 */
-				drawMap(canvas);
-				canvasResizeTimer = null;
+			function resizeOrb() {
+				const container = document.getElementById('orb-container');
+				const canvas = document.getElementById('c');
+				if (container && canvas) {
+					// Get the container width, accounting for padding
+					const containerWidth = container.offsetWidth - 40;
+					// Adjust max size based on screen width
+					const maxSize = window.innerWidth > 1200 ? 700 : window.innerWidth - 60;
+					const size = Math.min(containerWidth, maxSize);
+					
+					canvas.width = size;
+					canvas.height = size;
+					
+					// Redraw the chart with new dimensions
+					if (window.dataProcessor && window.dataProcessor.geodata) {
+						const chartData = window.dataProcessor.getChartData(ulangs);
+						if (chartData && chartData.length > 0) {
+							const center = size / 2;
+							const radius = (size / 2) - 50; // Leave some margin
+							drawCircularChart(canvas, 10, 30, [center, center], radius, chartData);
+						}
+					}
+				}
 			}
+			
 			function redrawChartAndTable() {
-				$.get('http://data.cleoling.com/getChartData.php?ulangs='+ulangs, function(data, status){
-					if(status == "success"){
-						var array = JSON.parse(data);
-						drawCircularChart(document.getElementById('c'), 4, 30, [350, 350], 300, array);
-					}
-				});
-				$.get("http://data.cleoling.com/getTable.php?ulangs="+ulangs, function(data, status){
-					if(status == "success"){
-						document.getElementById("responseFrame").innerHTML = data;
-					}
-				});
-			}
-			$(document).ready(function(){
-				redrawChartAndTable();
+				// Ensure data processor is initialized
+				if (!window.dataProcessor.geodata) {
+					console.log('Waiting for data to load...');
+					setTimeout(redrawChartAndTable, 100);
+					return;
+				}
 				
+				// Resize and draw the orb
+				resizeOrb();
+				
+				// Get table HTML using the data processor
+				const tableHTML = window.dataProcessor.getTableHTML(ulangs);
+				document.getElementById("responseFrame").innerHTML = tableHTML;
+			}
+			
+			$(document).ready(function(){
 				// resize the canvas to fill browser window dynamically
+				let resizeTimer;
 				window.addEventListener('resize', function () {
 					document.getElementById('navWrap').style.width = "100%";
-					if(canvasResizeTimer == null)
-						canvasResizeTimer = setTimeout(resizeAndRedrawMap, 500, false);
-					else
-						window.clearTimeout(canvasResizeTimer);
+					
+					// Debounce the orb resize to avoid too many redraws
+					clearTimeout(resizeTimer);
+					resizeTimer = setTimeout(function() {
+						resizeOrb();
+					}, 250);
 				});
-				resizeAndRedrawMap();
-				
 			});
 		</script>
 	</head>
-	<body style="width:window.innerWidth;">
+	<body>
 		<div id="header">
 			<h1 align='center'>Interlingual Connections on the Web</h1>
-			<h4 align='center'><span>Who's linking to whom, </span><span style='color:#DDD'>about what, </span><span>where, in which language?</span></h4>
+			<h4 align='center'>Who's linking to whom, about what, where, in which language?</h4>
 			<div id="navWrap">
 				<div id="nav">
 					<ul class="site-menu">
 						<li><a href="" class="smoothScroll">Top</a></li>
 						<li><a href="#horb" class="smoothScroll">Orb</a></li>
 						<li><a href="#htable" class="smoothScroll">Table</a></li>
-						<li><a href="#hmap" class="smoothScroll">Map</a></li>
-						<li><a href="#hapi" class="smoothScroll">API</a></li>
 						<li><a href="#hcode" class="smoothScroll">Code</a></li>
 						<li><a href="#habout" class="smoothScroll">About</a></li>
 					</ul>
 					<br>
-					<div id="my-text-input" class="token-input-dropdown"></div>
+					<div>
+						<input type="text" id="my-text-input" name="languages" />
+					</div>
 				</div>
 			</div>
 		</div>
 		<div id='content-separator'></div>
-		<div class="separable-section">
+		<div style="display: flex; flex-wrap: wrap; align-items: flex-start; margin: 0 10px; gap: 10px;">
+		<div class="separable-section" id="orb-container" style="flex: 1 1 45%; min-width: 350px;">
 			<h2 class='section-headline' id="horb">Orb</h2>
-			<div align="left">
-				<canvas id="c" width="700px" height="700px" />
+			<div align="center" style="width: 100%;">
+				<canvas id="c" />
 			</div>
 		</div>
-		<div class="separable-section">
+		<div class="separable-section" id="table-container" style="flex: 1 1 45%; min-width: 350px;">
 			<h2 class='section-headline' id="htable">Raw Data</h2>
-			<div id="responseFrame"></div>
+			<div id="responseFrame" style="width: 100%; overflow-x: auto; max-height: 700px; overflow-y: auto;"></div>
 		</div>
-		<div class="separable-section">
-			<h2 class='section-headline' id="hmap">Map</h2>
-			<canvas id="map" width="800" height="400">
-			</canvas>
 		</div>
-		<div class="separable-section">
-			<h2 class='section-headline' id="hapi">API</h2>
-				<tt>data.cleoling.com/getChartData.php?ulangs=[coma-separated-langids]</tt><p>
-				Returns a JSON-formatted list-of-dicts where each element is a dict with keys <tt>seg_a_id, seg_b_id, num_ab, num_ba</tt>. <p>
-				<hline/>
-				<tt>data.cleoling.com/getTable.php?ulangs=[coma-separated-langids]</tt><p>
-				Returns a sorted table of all language links among the specified languages.
+		<div class="separable-section" style="width: calc(100% - 40px);">
 			<h2 class='section-headline' id="hcode">Code</h2>
-				<a href='https://github.com/josephbirkner/cleoling.github.io'>cleoling.com at GitHub</a>
-				<a href='https://github.com/josephbirkner/cleoling'>data.cleoling.com at GitHub</a>
+			<p>The source code for this project is available on GitHub:</p>
+			<p><a href="https://github.com/josephbirkner/cleoling" target="_blank" style="font-size: 1.2em;">
+				📂 github.com/josephbirkner/cleoling
+			</a></p>
+			<p>Feel free to explore, fork, and contribute!</p>
+			
 			<h2 class='section-headline' id="habout">About</h2>
 			<h3>Authors</h3>
-				<a href="http://josephbirkner.com/" target="_blank">Joseph Birkner</a> & <a href="http://tilly-doe.blogspot.de/" target="_blank">Tillmann Dönicke</a><br />
-				Students of B. Sc. Natural Language Processing<br />
-				<a href="http://www.ims.uni-stuttgart.de/index.en.html" target="_blank">Institute for Natural Language Processing (IMS)</a><br />
-				<a href="http://www.uni-stuttgart.de/home/index.en.html" target="_blank">University of Stuttgart</a><br /><br />
-				You can contact us via the following addresses:
-				<ul>
-					<li>mail@josephbirkner.com</li>
-					<li>tillmann.doenicke@ims.uni-stuttgart.de</li>
-					<li>info@cleoling.com</li>
-				</ul>
+			<a href="http://josephbirkner.com/" target="_blank">Joseph Birkner</a> & <a href="http://tilly-doe.blogspot.de/" target="_blank">Tillmann Dönicke</a><br />
+			Students of B. Sc. Natural Language Processing<br />
+			<a href="http://www.ims.uni-stuttgart.de/index.en.html" target="_blank">Institute for Natural Language Processing (IMS)</a><br />
+			<a href="http://www.uni-stuttgart.de/home/index.en.html" target="_blank">University of Stuttgart</a><br /><br />
+			You can contact us via the following addresses:
+			<ul>
+				<li>joseph.birkner@ims.uni-stuttgart.de</li>
+				<li>tillmann.doenicke@ims.uni-stuttgart.de</li>
+				<li>info@cleoling.com</li>
+			</ul>
 			<h3>History</h3>
 			<ul>
 				<li>2015
 					<ul>
 						<li>January: The second annual Computational Linguistics Unconference (<a href="http://www.clunc.eu/" target="_blank">clunc</a>) took place in Stuttgart. After a one-night-programming shift we won the hackathon with our project titled <q>HackGeoLing</q>, which was the first prototype of this project. The hurrily created slides of the presentation you can download <a href="HackGeoLing.pdf" download>here</a>.</li>
 						<li>March: After doing a Python course we wrote a totally new crawler which was originally in PHP to do not have encoding problems anymore.</li>
-						<li>May: We worked out a new idea how two present the crawled data in a better way than with a map. After some mathematical discussions we created the orb, which does not have the countries-are-not-languages problem.</li>
-						<li>June: We fought a battle against Ajax requests&mdash;and won! Because of we don't have permission to use the Google API, we get our map coordinates from OpenStreetMap now (Take that, Google!). Furthermore the orb got a logarithmic scale, because English always took too much scale place. <nobr>&mdash; &mdash;</nobr> The orb now has beautiful colours! Same is now being worked on for the arrows of the map. Also one more thing: We can interactively display languages now! (Have a look at the new input bar in the menu.) <nobr>&mdash; &mdash;</nobr> We started working on a new vector-based, interactive concept for the map and advanced query expressions for our API.</li>
+						<li>May: We worked out a new idea how to present the crawled data in a better way. After some mathematical discussions we created the orb, which does not have the countries-are-not-languages problem.</li>
+						<li>June: We fought a battle against Ajax requests&mdash;and won! The orb got a logarithmic scale, because English always took too much scale place. <nobr>&mdash; &mdash;</nobr> The orb now has beautiful colours! Also one more thing: We can interactively display languages now! (Have a look at the new input bar in the menu.) <nobr>&mdash; &mdash;</nobr> We started working on advanced query expressions for our API.</li>
+					</ul>
+				</li>
+				<li>2025
+					<ul>
+						<li>August: The project was migrated from PHP to JavaScript with strong help from Claude Opus 4.1.</li>
 					</ul>
 				</li>
 			</ul>
@@ -173,9 +239,6 @@
 				<li>2<sup>nd</sup> crawler: <a href="http://scrapy.org/" target="_blank">Scrapy</a>
 				<li><a href="http://loopj.com/jquery-tokeninput/" target="_blank">jQuery Tokeninput</a> by <a href="http://loopj.com/" target="_blank">James Smith</a></li>
 				<li><a href="http://www.ipligence.com/free-ip-database" target="_blank">IPligence Lite Free</a> by <a href="http://www.ipligence.com/" target="_blank">IPligence</a></li>
-				<li><a href="https://nominatim.openstreetmap.org/" target="_blank">Nominatim</a> by <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a></li>
-				<li><a href="http://www.naturalearthdata.com/downloads/110m-cultural-vectors/" target="_blank">1:110m Cultural Vectors</a> by <a href="http://www.naturalearthdata.com/" target="_blank">Natural Earth</a></li>
-				<li><a href="http://ogre.adc4gis.com/" target="_blank">ESRI to GeoJSON Shapefile Converter</a></li>
 				<li><a href="http://www.clunc.eu/" target="_blank">clunc</a> by <a href="http://www.aexea.de/" target="_blank">Aexea</a></li>
 			</ul>			
 		</div>
