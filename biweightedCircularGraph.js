@@ -102,7 +102,6 @@ var drawCircularChart = function(canvas, gap_size, border_size, center, radius, 
             var segIncEdgeData = segData.incoming[segData.incoming_order[i]];
             if(segIncEdgeData.share < minRefsPerEdgeEnd) {
                 var addedRefs = minRefsPerEdgeEnd - segIncEdgeData.share; // This is def. at least 1
-                console.log('adding '+addedRefs+' to '+segIncEdgeData.share+'. Total refs are '+totalRefs);
                 segIncEdgeData.share += addedRefs;
                 segData.share += addedRefs;
                 totalRefs += addedRefs;
@@ -309,8 +308,8 @@ var drawCircularChart = function(canvas, gap_size, border_size, center, radius, 
         var innerRelativeToOuterAzimutStartsAt = 0.0;
         var innerRelativeToOuterAzimutEndsAt = 0.0;
         var edgeGradient = null;
-        var gradientStartColor = '';
-        var gradientEndColor = '';
+        var gradientStartColor = '#666666'; // Default color
+        var gradientEndColor = '#666666';   // Default color
 
         if(azimutBStartAEnd > azimutAStartBEnd) {
             edgeGradient = ctx.createLinearGradient(incBStartCoords[0], incBStartCoords[1], incAEndCoords[0], incAEndCoords[1]);
@@ -318,8 +317,8 @@ var drawCircularChart = function(canvas, gap_size, border_size, center, radius, 
             innerAzimut = azimutAStartBEnd;
             innerRelativeToOuterAzimutStartsAt = innerRelativeToOuterAzimutEndsAt = incBData.seg_end - incBData.seg_start;
             innerRelativeToOuterAzimutEndsAt += innerAzimut;
-            gradientStartColor = segAData.color;
-            gradientEndColor = segBData.color;
+            gradientStartColor = segAData.color || '#666666';
+            gradientEndColor = segBData.color || '#666666';
         }
         else {
             edgeGradient = ctx.createLinearGradient(incAStartCoords[0], incAStartCoords[1], incBEndCoords[0], incBEndCoords[1]);
@@ -327,16 +326,34 @@ var drawCircularChart = function(canvas, gap_size, border_size, center, radius, 
             innerAzimut = azimutBStartAEnd;
             innerRelativeToOuterAzimutStartsAt = innerRelativeToOuterAzimutEndsAt = incAData.seg_end - incAData.seg_start;
             innerRelativeToOuterAzimutEndsAt += innerAzimut;
-            gradientStartColor = segBData.color;
-            gradientEndColor = segAData.color;
+            gradientStartColor = segBData.color || '#666666';
+            gradientEndColor = segAData.color || '#666666';
         }
         
         // For cases where innerAzimut ~= outerAzimut ~= 180deg we need to clamp
         if(innerRelativeToOuterAzimutEndsAt > outerAzimut)
             innerRelativeToOuterAzimutEndsAt = outerAzimut;
 
-        edgeGradient.addColorStop(innerRelativeToOuterAzimutStartsAt/outerAzimut, gradientStartColor);
-        edgeGradient.addColorStop(innerRelativeToOuterAzimutEndsAt/outerAzimut, gradientEndColor);
+        // Ensure we have valid gradient stop positions (0-1 range)
+        var startStop = 0;
+        var endStop = 1;
+        
+        if(outerAzimut > 0) {
+            startStop = innerRelativeToOuterAzimutStartsAt / outerAzimut;
+            endStop = innerRelativeToOuterAzimutEndsAt / outerAzimut;
+            
+            // Clamp values to 0-1 range
+            startStop = Math.max(0, Math.min(1, startStop));
+            endStop = Math.max(0, Math.min(1, endStop));
+            
+            // Ensure endStop is always greater than startStop
+            if(endStop <= startStop) {
+                endStop = Math.min(1, startStop + 0.01);
+            }
+        }
+
+        edgeGradient.addColorStop(startStop, gradientStartColor);
+        edgeGradient.addColorStop(endStop, gradientEndColor);
         ctx.fillStyle = edgeGradient;
         
         // draw poly
